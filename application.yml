@@ -1,0 +1,7 @@
+application:
+  base_url: https://www.qixianzi.com/Korea/56954
+  save_file: save_file.txt
+  iteration:
+    enable: true
+    from: 2
+    to: 99
