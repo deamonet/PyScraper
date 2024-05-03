@@ -4,6 +4,7 @@
 """
 import os.path
 import yaml
+import zipfile
 from typing import Callable
 
 from playwright.sync_api import Page
@@ -72,3 +73,45 @@ def test_qixianzi(page: Page):
             main_flow(base_url, save_file, start, end, page)
         except Exception as e:
             LOGGER.error("FAILURE", e)
+
+
+def image_download(url: str, path: str, page: Page):
+    image_file_name = url.split("/")[-1]
+    with open(f"{path}/{image_file_name}", "wb") as fi:
+        fi.write(page.goto(url).body())
+
+
+def images_download(urls: set[str], path: str, page: Page):
+    for url in urls:
+        image_download(url, path, page)
+
+
+def download_main_flow(path: str, page: Page):
+    done_images = {}
+    for root, dirs, files in os.walk("./images"):
+        done_images = set(files)
+
+    with open("save_file_copy.txt", "r") as fi:
+        work_images = {line.strip() for line in fi.readlines() if line.split("/")[-1].strip() not in done_images}
+
+    images_download(work_images, path, page)
+
+
+def calculate_images(path: str):
+    done_images = {}
+    for root, dirs, files in os.walk("./images"):
+        done_images = set(files)
+    return len(done_images)
+
+
+def test_qixianzi_image_download(page: Page):
+    path = "./images"
+    while calculate_images(path) < 100:
+        try:
+            download_main_flow(path, page)
+        except Exception as e:
+            LOGGER.info("FAILURE, RESTART...", e)
+
+
+if __name__ == "__main__":
+    download_main_flow("./imagesd", None)
